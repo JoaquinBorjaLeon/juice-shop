@@ -51,13 +51,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache Dependency-Check NVD database
-        uses: actions/cache@v4
-        with:
-          path: /tmp/dc-data
-          key: dc-nvd-${{ github.ref_name }}
-          restore-keys: dc-nvd-
-
       - name: Create output directory for Dependency-Check
         run: mkdir -p reports/dependency-check
 
@@ -70,7 +63,6 @@ jobs:
           out: "reports/dependency-check"
           args: >
             --enableRetired
-            --data /tmp/dc-data
             --failOnCVSS 11
         env:
           JAVA_HOME: /opt/jdk
