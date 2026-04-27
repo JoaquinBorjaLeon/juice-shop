@@ -176,27 +176,29 @@ jobs:
           timeout 120 bash -c 'until curl -sf http://localhost:3000 > /dev/null; do sleep 3; done'
           echo "Juice Shop disponible en http://localhost:3000"
 
-      - name: Fix workspace permissions for ZAP
-        run: chmod a+w $GITHUB_WORKSPACE
+      - name: Prepare ZAP workspace
+        run: |
+          mkdir -p zap-reports
+          chmod 777 zap-reports
 
       - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: "http://localhost:3000"
-          cmd_options: "-a"
-          fail_action: false
-          allow_issue_writing: false
-          artifact_name: ""
+        run: |
+          docker run --network=host \
+            -v ${{ github.workspace }}/zap-reports:/zap/wrk/:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:3000 \
+            -J report_json.json \
+            -w report_md.md \
+            -r report_html.html \
+            -a || true
 
       - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dast-zap
-          path: |
-            report_html.html
-            report_json.json
-            report_md.md
+          path: zap-reports/
           retention-days: 30
 
   # ══════════════════════════════════════════════════════════════════════════════
