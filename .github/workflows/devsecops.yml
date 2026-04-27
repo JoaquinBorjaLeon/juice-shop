@@ -58,6 +58,9 @@ jobs:
           key: dc-nvd-${{ github.ref_name }}
           restore-keys: dc-nvd-
 
+      - name: Create output directory for Dependency-Check
+        run: mkdir -p reports/dependency-check
+
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -179,11 +182,14 @@ jobs:
           timeout 120 bash -c 'until curl -sf http://localhost:3000 > /dev/null; do sleep 3; done'
           echo "Juice Shop disponible en http://localhost:3000"
 
+      - name: Fix workspace permissions for ZAP
+        run: chmod a+w $GITHUB_WORKSPACE
+
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: "http://localhost:3000"
-          cmd_options: "-a -j"
+          cmd_options: "-a"
           fail_action: false
           allow_issue_writing: false
 
